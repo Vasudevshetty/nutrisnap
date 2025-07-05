@@ -295,6 +295,242 @@ class EnhancedNutritionModel:
             'food_cluster': int(cluster),
             'confidence_score': max(health_probabilities)
         }
+    
+    def categorize_food_group(self, food_name):
+        """Categorize food into major food groups based on name"""
+        food_name = food_name.lower()
+        
+        # Dairy
+        dairy_keywords = ['cheese', 'milk', 'yogurt', 'cream', 'butter', 'ricotta', 'mozzarella', 'cheddar', 'goat']
+        if any(keyword in food_name for keyword in dairy_keywords):
+            return 'Dairy'
+        
+        # Proteins (Meat, Fish, Eggs, Nuts)
+        protein_keywords = ['chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'egg', 'turkey', 'ham', 'bacon', 'shrimp', 'crab', 'lobster']
+        if any(keyword in food_name for keyword in protein_keywords):
+            return 'Protein'
+        
+        # Nuts and Seeds
+        nuts_keywords = ['peanut', 'almond', 'walnut', 'cashew', 'tahini', 'seed', 'nut']
+        if any(keyword in food_name for keyword in nuts_keywords):
+            return 'Nuts & Seeds'
+        
+        # Fruits
+        fruit_keywords = ['apple', 'banana', 'orange', 'grape', 'berry', 'cherry', 'peach', 'pear', 'plum', 'fruit', 'jam']
+        if any(keyword in food_name for keyword in fruit_keywords):
+            return 'Fruits'
+        
+        # Vegetables
+        vegetable_keywords = ['carrot', 'broccoli', 'spinach', 'lettuce', 'tomato', 'potato', 'onion', 'pepper', 'cucumber', 'vegetable']
+        if any(keyword in food_name for keyword in vegetable_keywords):
+            return 'Vegetables'
+        
+        # Grains and Cereals
+        grain_keywords = ['bread', 'rice', 'pasta', 'cereal', 'oat', 'wheat', 'grain', 'flour', 'quinoa', 'barley']
+        if any(keyword in food_name for keyword in grain_keywords):
+            return 'Grains'
+        
+        # Beverages
+        beverage_keywords = ['juice', 'soda', 'coffee', 'tea', 'water', 'drink', 'beverage', 'smoothie']
+        if any(keyword in food_name for keyword in beverage_keywords):
+            return 'Beverages'
+        
+        # Sweets and Desserts
+        sweet_keywords = ['chocolate', 'candy', 'cake', 'cookie', 'ice cream', 'honey', 'sugar', 'dessert', 'pie']
+        if any(keyword in food_name for keyword in sweet_keywords):
+            return 'Sweets & Desserts'
+        
+        # Oils and Fats
+        fat_keywords = ['oil', 'margarine', 'lard', 'shortening']
+        if any(keyword in food_name for keyword in fat_keywords):
+            return 'Oils & Fats'
+        
+        # Processed Foods
+        processed_keywords = ['spread', 'sauce', 'dressing', 'seasoning', 'soup', 'snack']
+        if any(keyword in food_name for keyword in processed_keywords):
+            return 'Processed Foods'
+        
+        return 'Other'
+
+    def generate_health_tags(self, nutrition_data):
+        """Generate health tags based on nutritional content"""
+        tags = []
+        
+        # Protein content
+        if nutrition_data.get('Protein', 0) >= 15:
+            tags.append('High Protein')
+        elif nutrition_data.get('Protein', 0) >= 8:
+            tags.append('Good Protein')
+        elif nutrition_data.get('Protein', 0) < 2:
+            tags.append('Low Protein')
+        
+        # Fat content
+        if nutrition_data.get('Fat', 0) >= 20:
+            tags.append('High Fat')
+        elif nutrition_data.get('Fat', 0) <= 3:
+            tags.append('Low Fat')
+        
+        # Saturated fat
+        if nutrition_data.get('Saturated Fats', 0) >= 5:
+            tags.append('High Saturated Fat')
+        elif nutrition_data.get('Saturated Fats', 0) <= 1:
+            tags.append('Low Saturated Fat')
+        
+        # Carbohydrates
+        if nutrition_data.get('Carbohydrates', 0) >= 50:
+            tags.append('High Carb')
+        elif nutrition_data.get('Carbohydrates', 0) <= 5:
+            tags.append('Low Carb')
+        
+        # Sugar content
+        if nutrition_data.get('Sugars', 0) >= 15:
+            tags.append('High Sugar')
+        elif nutrition_data.get('Sugars', 0) <= 2:
+            tags.append('Low Sugar')
+        
+        # Fiber content
+        if nutrition_data.get('Dietary Fiber', 0) >= 5:
+            tags.append('High Fiber')
+        elif nutrition_data.get('Dietary Fiber', 0) <= 1:
+            tags.append('Low Fiber')
+        
+        # Sodium content
+        if nutrition_data.get('Sodium', 0) >= 400:
+            tags.append('High Sodium')
+        elif nutrition_data.get('Sodium', 0) <= 50:
+            tags.append('Low Sodium')
+        
+        # Caloric density
+        if nutrition_data.get('Caloric Value', 0) >= 400:
+            tags.append('High Calorie')
+        elif nutrition_data.get('Caloric Value', 0) <= 100:
+            tags.append('Low Calorie')
+        
+        # Overall health assessment
+        health_score = (
+            nutrition_data.get('Protein', 0) * 2 +
+            nutrition_data.get('Dietary Fiber', 0) * 3 +
+            nutrition_data.get('Vitamin_Score', 0) * 0.5 +
+            nutrition_data.get('Mineral_Score', 0) * 0.3 -
+            nutrition_data.get('Saturated Fats', 0) * 2 -
+            nutrition_data.get('Sugars', 0) * 1.5 -
+            nutrition_data.get('Sodium', 0) * 0.01
+        )
+        
+        if health_score >= 15:
+            tags.append('Very Healthy')
+        elif health_score >= 8:
+            tags.append('Healthy')
+        elif health_score >= 2:
+            tags.append('Moderate')
+        else:
+            tags.append('Less Healthy')
+        
+        # Junk food indicators
+        if (nutrition_data.get('Sugars', 0) >= 10 and nutrition_data.get('Saturated Fats', 0) >= 3) or nutrition_data.get('Sodium', 0) >= 500:
+            tags.append('Junk Food')
+        
+        # Natural/Whole food indicators
+        if nutrition_data.get('Dietary Fiber', 0) >= 3 and nutrition_data.get('Sugars', 0) <= 5 and nutrition_data.get('Sodium', 0) <= 100:
+            tags.append('Whole Food')
+        
+        return tags
+
+    def search_food_by_name(self, food_name, limit=10):
+        """Search for foods by name in the dataset"""
+        try:
+            df = self.load_and_preprocess_data()
+            
+            # Simple text search
+            matches = df[df['food'].str.contains(food_name, case=False, na=False)]
+            
+            if matches.empty:
+                return []
+            
+            results = []
+            for _, row in matches.head(limit).iterrows():
+                food_data = {
+                    'name': row['food'],
+                    'food_group': self.categorize_food_group(row['food']),
+                    'nutrition': {
+                        'calories': row['Caloric Value'],
+                        'protein': row['Protein'],
+                        'fat': row['Fat'],
+                        'carbohydrates': row['Carbohydrates'],
+                        'fiber': row['Dietary Fiber'],
+                        'sugar': row['Sugars'],
+                        'sodium': row['Sodium']
+                    },
+                    'health_tags': self.generate_health_tags(row.to_dict())
+                }
+                results.append(food_data)
+            
+            return results
+        except Exception as e:
+            print(f"Error searching for food: {e}")
+            return []
+
+    def analyze_food_by_name(self, food_name):
+        """Analyze a specific food by name"""
+        try:
+            df = self.load_and_preprocess_data()
+            
+            # Find exact or close match
+            exact_match = df[df['food'].str.lower() == food_name.lower()]
+            
+            if exact_match.empty:
+                # Try partial match
+                partial_match = df[df['food'].str.contains(food_name, case=False, na=False)]
+                if partial_match.empty:
+                    return None
+                food_data = partial_match.iloc[0]
+            else:
+                food_data = exact_match.iloc[0]
+            
+            # Prepare features for ML prediction
+            feature_cols = [col for col in df.columns 
+                           if col not in ['food', 'Nutrition Density', 'Health_Category']]
+            
+            # Get ML predictions if models are loaded
+            ml_predictions = {}
+            if self.regression_model is not None:
+                X = food_data[feature_cols].values.reshape(1, -1)
+                X_scaled = self.scaler.transform(X)
+                if self.pca is not None:
+                    X_pca = self.pca.transform(X_scaled)
+                    ml_predictions['nutrition_density'] = float(self.regression_model.predict(X_pca)[0])
+                
+                if self.classification_model is not None:
+                    health_category_encoded = self.classification_model.predict(X_pca)[0]
+                    ml_predictions['health_category'] = self.label_encoder.inverse_transform([health_category_encoded])[0]
+            
+            # Create comprehensive analysis
+            analysis = {
+                'name': food_data['food'],
+                'food_group': self.categorize_food_group(food_data['food']),
+                'nutrition': {
+                    'calories': float(food_data['Caloric Value']),
+                    'protein': float(food_data['Protein']),
+                    'fat': float(food_data['Fat']),
+                    'saturated_fat': float(food_data['Saturated Fats']),
+                    'carbohydrates': float(food_data['Carbohydrates']),
+                    'fiber': float(food_data['Dietary Fiber']),
+                    'sugar': float(food_data['Sugars']),
+                    'sodium': float(food_data['Sodium']),
+                    'calcium': float(food_data.get('Calcium', 0)),
+                    'iron': float(food_data.get('Iron', 0)),
+                    'vitamin_c': float(food_data.get('Vitamin C', 0))
+                },
+                'health_tags': self.generate_health_tags(food_data.to_dict()),
+                'ml_predictions': ml_predictions,
+                'raw_data': food_data.to_dict()
+            }
+            
+            return analysis
+            
+        except Exception as e:
+            print(f"Error analyzing food: {e}")
+            return None
 
 if __name__ == "__main__":
     # Train the enhanced model

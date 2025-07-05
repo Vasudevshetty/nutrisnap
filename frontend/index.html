@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NutriSnap - Smart Food Assistant</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="container">
+          <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>NutriSnap</span>
+          </div>
+          <nav class="nav">
+            <a href="#analyze" class="nav-link active">Analyze Food</a>
+            <a href="#search" class="nav-link">Search Foods</a>
+            <a href="#about" class="nav-link">About</a>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="main">
+        <div class="container">
+          <!-- Hero Section -->
+          <section class="hero">
+            <h1>Smart Food Assistant</h1>
+            <p>Understand what you eat. Make better food choices.</p>
+          </section>
+
+          <!-- Food Analysis Section -->
+          <section id="analyze" class="section">
+            <div class="card">
+              <h2><i class="fas fa-utensils"></i> Analyze Your Food</h2>
+
+              <!-- Input Methods -->
+              <div class="input-methods">
+                <div class="method-tabs">
+                  <button class="tab-btn active" data-tab="name">
+                    <i class="fas fa-keyboard"></i>
+                    Type Food Name
+                  </button>
+                  <button class="tab-btn" data-tab="image">
+                    <i class="fas fa-camera"></i>
+                    Upload Image
+                  </button>
+                  <button class="tab-btn" data-tab="manual">
+                    <i class="fas fa-edit"></i>
+                    Manual Entry
+                  </button>
+                </div>
+
+                <!-- Food Name Input -->
+                <div id="name-tab" class="tab-content active">
+                  <div class="input-group">
+                    <input
+                      type="text"
+                      id="food-name-input"
+                      placeholder="Enter food name (e.g., 'chicken breast', 'apple')"
+                    />
+                    <button id="analyze-name-btn" class="btn-primary">
+                      <i class="fas fa-search"></i>
+                      Analyze
+                    </button>
+                  </div>
+                  <div class="suggestions" id="food-suggestions"></div>
+                </div>
+
+                <!-- Image Upload -->
+                <div id="image-tab" class="tab-content">
+                  <div class="upload-area" id="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drop an image here or click to upload</p>
+                    <input
+                      type="file"
+                      id="image-input"
+                      accept="image/*"
+                      hidden
+                    />
+                  </div>
+                  <div id="image-preview"></div>
+                </div>
+
+                <!-- Manual Entry -->
+                <div id="manual-tab" class="tab-content">
+                  <div class="manual-form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Food Name</label>
+                        <input
+                          type="text"
+                          id="manual-food-name"
+                          placeholder="Enter food name"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label>Calories</label>
+                        <input
+                          type="number"
+                          id="manual-calories"
+                          placeholder="per 100g"
+                        />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Protein (g)</label>
+                        <input type="number" id="manual-protein" step="0.1" />
+                      </div>
+                      <div class="form-group">
+                        <label>Fat (g)</label>
+                        <input type="number" id="manual-fat" step="0.1" />
+                      </div>
+                      <div class="form-group">
+                        <label>Carbs (g)</label>
+                        <input type="number" id="manual-carbs" step="0.1" />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Fiber (g)</label>
+                        <input type="number" id="manual-fiber" step="0.1" />
+                      </div>
+                      <div class="form-group">
+                        <label>Sugar (g)</label>
+                        <input type="number" id="manual-sugar" step="0.1" />
+                      </div>
+                      <div class="form-group">
+                        <label>Sodium (mg)</label>
+                        <input type="number" id="manual-sodium" />
+                      </div>
+                    </div>
+                    <button id="analyze-manual-btn" class="btn-primary">
+                      <i class="fas fa-calculator"></i>
+                      Analyze Nutrition
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Results Section -->
+          <section id="results" class="section" style="display: none">
+            <div class="results-container">
+              <!-- Food Info Card -->
+              <div class="card result-card">
+                <h3><i class="fas fa-info-circle"></i> Food Information</h3>
+                <div id="food-info"></div>
+              </div>
+
+              <!-- Nutrition Facts Card -->
+              <div class="card result-card">
+                <h3><i class="fas fa-chart-pie"></i> Nutrition Facts</h3>
+                <div id="nutrition-facts"></div>
+              </div>
+
+              <!-- Health Tags Card -->
+              <div class="card result-card">
+                <h3><i class="fas fa-tags"></i> Health Tags</h3>
+                <div id="health-tags"></div>
+              </div>
+
+              <!-- AI Insights Card -->
+              <div class="card result-card full-width">
+                <h3><i class="fas fa-brain"></i> AI Insights</h3>
+                <div id="ai-insights"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Search Section -->
+          <section id="search" class="section" style="display: none">
+            <div class="card">
+              <h2><i class="fas fa-search"></i> Search Food Database</h2>
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="search-input"
+                  placeholder="Search for foods..."
+                />
+                <button id="search-btn" class="btn-primary">Search</button>
+              </div>
+              <div id="search-results"></div>
+            </div>
+          </section>
+
+          <!-- About Section -->
+          <section id="about" class="section" style="display: none">
+            <div class="card">
+              <h2><i class="fas fa-info"></i> About NutriSnap</h2>
+              <p>
+                NutriSnap is a smart food assistant that helps you understand
+                the nutritional content and health implications of your food
+                choices. Our AI-powered analysis provides:
+              </p>
+              <ul>
+                <li>
+                  <strong>Food Group Classification:</strong> Identify which
+                  food group your meal belongs to
+                </li>
+                <li>
+                  <strong>Health Tags:</strong> Get instant tags like "high
+                  protein", "low fat", "junk food", or "healthy"
+                </li>
+                <li>
+                  <strong>Nutritional Analysis:</strong> Comprehensive breakdown
+                  of calories, macronutrients, and micronutrients
+                </li>
+                <li>
+                  <strong>AI Insights:</strong> Personalized recommendations and
+                  health insights
+                </li>
+              </ul>
+              <p>
+                Make informed decisions about your diet and improve your eating
+                habits with science-backed analysis.
+              </p>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Loading Overlay -->
+      <div id="loading" class="loading-overlay" style="display: none">
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+          <p>Analyzing your food...</p>
+        </div>
+      </div>
+
+      <!-- Error Toast -->
+      <div id="error-toast" class="toast error-toast" style="display: none">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="error-message"></span>
+        <button class="toast-close">&times;</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

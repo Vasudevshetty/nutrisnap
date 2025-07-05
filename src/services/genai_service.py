@@ -101,7 +101,7 @@ class NutritionInsightsGenerator:
         
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7
@@ -131,7 +131,7 @@ class NutritionInsightsGenerator:
         
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=600,
                 temperature=0.7
@@ -159,7 +159,7 @@ class NutritionInsightsGenerator:
         
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7
@@ -187,7 +187,7 @@ class NutritionInsightsGenerator:
         
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7
@@ -216,7 +216,7 @@ class NutritionInsightsGenerator:
         
         try:
             response = self.client.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="llama-3.3-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=500,
                 temperature=0.7

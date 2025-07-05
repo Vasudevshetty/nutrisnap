@@ -4,7 +4,6 @@ from fastapi.responses import JSONResponse
 import aiofiles
 import os
 from pathlib import Path
-import shutil
 from typing import Dict, Any
 import logging
 
@@ -18,24 +17,51 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
+# CORS middleware - Allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=[
+        "http://localhost:3000",  # React dev server
+        "http://localhost:8501",  # Frontend server
+        "http://localhost:8502",  # Streamlit
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8501",
+        "http://127.0.0.1:8502",
+        "http://127.0.0.1:5500",  # Live Server default
+        "http://localhost:5500",
+        "*"  # Allow all origins in development
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
 # Import services
 try:
     from src.services.image_processor import NutritionLabelExtractor
+    IMPORTS_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Image processor import error: {e}")
+    NutritionLabelExtractor = None
+    IMPORTS_AVAILABLE = False
+
+try:
     from src.ml.enhanced_model import EnhancedNutritionModel
+except ImportError as e:
+    logger.warning(f"ML model import error: {e}")
+    EnhancedNutritionModel = None
+
+try:
     from src.services.genai_service import NutritionInsightsGenerator
+except ImportError as e:
+    logger.warning(f"GenAI service import error: {e}")
+    NutritionInsightsGenerator = None
+
+try:
     from src.config import config
 except ImportError as e:
-    logger.error(f"Import error: {e}")
-    # Fallback for testing
+    logger.warning(f"Config import error: {e}")
+    # Fallback config
     config = type('Config', (), {
         'UPLOAD_DIR': Path('./uploads'),
         'MAX_FILE_SIZE': 10485760,
@@ -56,21 +82,39 @@ async def startup_event():
     try:
         logger.info("🚀 Starting NutriSnap API...")
         
-        # Initialize image processor
-        image_processor = NutritionLabelExtractor(use_easyocr=True)
-        logger.info("✅ Image processor initialized")
-        
-        # Initialize ML model
-        ml_model = EnhancedNutritionModel()
-        if os.path.exists("models/nutrition_regression_model.pkl"):
-            ml_model.load_models("models")
-            logger.info("✅ ML models loaded")
+        # Initialize image processor if available
+        if NutritionLabelExtractor:
+            try:
+                image_processor = NutritionLabelExtractor(use_easyocr=True)
+                logger.info("✅ Image processor initialized")
+            except Exception as e:
+                logger.warning(f"⚠️ Image processor initialization failed: {e}")
         else:
-            logger.warning("⚠️ ML models not found. Please train models first.")
+            logger.warning("⚠️ Image processor not available")
         
-        # Initialize GenAI service
-        insights_generator = NutritionInsightsGenerator(api_key=config.GROQ_API_KEY)
-        logger.info("✅ GenAI service initialized")
+        # Initialize ML model if available
+        if EnhancedNutritionModel:
+            try:
+                ml_model = EnhancedNutritionModel()
+                if os.path.exists("models/nutrition_regression_model.pkl"):
+                    ml_model.load_models("models")
+                    logger.info("✅ ML models loaded")
+                else:
+                    logger.warning("⚠️ ML models not found. Please train models first.")
+            except Exception as e:
+                logger.warning(f"⚠️ ML model initialization failed: {e}")
+        else:
+            logger.warning("⚠️ ML model not available")
+        
+        # Initialize GenAI service if available
+        if NutritionInsightsGenerator:
+            try:
+                insights_generator = NutritionInsightsGenerator(api_key=config.GROQ_API_KEY)
+                logger.info("✅ GenAI service initialized")
+            except Exception as e:
+                logger.warning(f"⚠️ GenAI service initialization failed: {e}")
+        else:
+            logger.warning("⚠️ GenAI service not available")
         
         # Ensure upload directory exists
         config.UPLOAD_DIR.mkdir(exist_ok=True)
@@ -287,6 +331,122 @@ async def retrain_models():
         
     except Exception as e:
         logger.error(f"❌ Error retraining models: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/search/food/{food_name}")
+async def search_food_by_name(food_name: str, limit: int = 10):
+    """Search for foods by name"""
+    if not ml_model:
+        raise HTTPException(status_code=503, detail="ML model not available")
+    
+    try:
+        results = ml_model.search_food_by_name(food_name, limit)
+        
+        if not results:
+            return {
+                "status": "not_found",
+                "message": f"No foods found matching '{food_name}'",
+                "results": []
+            }
+        
+        return {
+            "status": "success",
+            "query": food_name,
+            "count": len(results),
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error searching food: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/analyze/food/{food_name}")
+async def analyze_food_by_name(food_name: str):
+    """Analyze a specific food by name"""
+    if not ml_model:
+        raise HTTPException(status_code=503, detail="ML model not available")
+    
+    try:
+        analysis = ml_model.analyze_food_by_name(food_name)
+        
+        if not analysis:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Food '{food_name}' not found in database"
+            )
+        
+        # Generate AI insights if available
+        if insights_generator:
+            ai_insights = insights_generator.generate_nutrition_insights(
+                analysis['nutrition'], analysis['ml_predictions']
+            )
+            analysis['ai_insights'] = ai_insights
+        
+        return {
+            "status": "success",
+            "analysis": analysis
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing food: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/analyze/nutrition")
+async def analyze_nutrition_data(nutrition_data: Dict[str, Any]):
+    """
+    Analyze nutrition data and return food group, health tags, and insights
+    This can be used for both manual input and extracted nutrition labels
+    """
+    if not ml_model:
+        raise HTTPException(status_code=503, detail="ML model not available")
+    
+    try:
+        # Generate food group and health tags
+        food_name = nutrition_data.get('food_name', 'Unknown Food')
+        food_group = ml_model.categorize_food_group(food_name)
+        health_tags = ml_model.generate_health_tags(nutrition_data)
+        
+        # Prepare ML predictions if we have enough data
+        ml_predictions = {}
+        if ml_model.regression_model and ml_model.feature_names:
+            try:
+                # Fill missing features with 0
+                feature_data = {}
+                for feature in ml_model.feature_names:
+                    feature_data[feature] = nutrition_data.get(feature, 0.0)
+                
+                # Get ML predictions
+                feature_values = [feature_data[name] for name in ml_model.feature_names]
+                predictions = ml_model.predict(feature_values)
+                ml_predictions = predictions
+            except Exception as e:
+                logger.warning(f"Could not generate ML predictions: {e}")
+        
+        # Generate AI insights
+        ai_insights = {}
+        if insights_generator:
+            try:
+                ai_insights = insights_generator.generate_nutrition_insights(
+                    nutrition_data, ml_predictions
+                )
+            except Exception as e:
+                logger.warning(f"Could not generate AI insights: {e}")
+                ai_insights = {"message": "AI insights not available"}
+        
+        return {
+            "status": "success",
+            "food_name": food_name,
+            "food_group": food_group,
+            "health_tags": health_tags,
+            "nutrition_data": nutrition_data,
+            "ml_predictions": ml_predictions,
+            "ai_insights": ai_insights
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing nutrition data: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
