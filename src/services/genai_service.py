@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict
 import logging
 from groq import Groq
 import json
@@ -89,14 +89,23 @@ class NutritionInsightsGenerator:
         
         {context}
         
-        Please provide:
-        1. An overall health rating (1-10 scale)
-        2. Key health benefits (if any)
-        3. Main health concerns (if any)
-        4. Who should be cautious about consuming this
-        5. Overall recommendation in one sentence
+        Please format your response in clear sections with these exact headings:
         
-        Keep the language simple and accessible to general public.
+        **Health Rating:** [Provide a rating from 1-10 with brief explanation]
+        
+        **Key Health Benefits:**
+        [List the main health benefits, if any]
+        
+        **Main Health Concerns:**
+        [List any health concerns or risks]
+        
+        **Who Should Be Cautious:**
+        [Mention specific groups who should limit consumption]
+        
+        **Overall Recommendation:**
+        [One clear sentence summarizing your recommendation]
+        
+        Keep the language simple and accessible to general public. Use bullet points where appropriate.
         """
         
         try:
@@ -118,15 +127,27 @@ class NutritionInsightsGenerator:
         
         {context}
         
-        Please provide:
-        1. Portion size recommendations
-        2. Best times to consume this food
-        3. What to pair it with for better nutrition
-        4. What to avoid combining it with
-        5. Frequency of consumption recommendations
-        6. Alternatives if this food is unhealthy
+        Please format your response with these exact headings:
         
-        Make recommendations practical and easy to follow.
+        **Portion Size Recommendations:**
+        [Provide specific portion guidance]
+        
+        **Best Times to Consume:**
+        [When is best to eat this food]
+        
+        **What to Pair With:**
+        [Foods that complement this nutritionally]
+        
+        **What to Avoid Combining With:**
+        [Foods to avoid eating with this]
+        
+        **Frequency of Consumption:**
+        [How often should this be eaten]
+        
+        **Healthier Alternatives:**
+        [Suggest alternatives if this food is unhealthy]
+        
+        Make recommendations practical and easy to follow. Use bullet points where appropriate.
         """
         
         try:
@@ -148,13 +169,21 @@ class NutritionInsightsGenerator:
         
         {context}
         
-        Please explain:
-        1. What the key nutrients do for your body
-        2. Whether the amounts are high, moderate, or low
-        3. How these nutrients work together
-        4. Any notable nutritional highlights or concerns
+        Please format your response with these exact headings:
         
-        Use analogies and simple language. Avoid medical jargon.
+        **Key Nutrients and Their Benefits:**
+        [Explain what the key nutrients do for your body]
+        
+        **Nutrient Levels (High/Moderate/Low):**
+        [Categorize the amounts as high, moderate, or low]
+        
+        **How Nutrients Work Together:**
+        [Explain how these nutrients complement each other]
+        
+        **Notable Highlights or Concerns:**
+        [Any standout nutritional features worth noting]
+        
+        Use analogies and simple language. Avoid medical jargon. Use bullet points where appropriate.
         """
         
         try:
@@ -176,13 +205,21 @@ class NutritionInsightsGenerator:
         
         {context}
         
-        Please provide:
-        1. How this food fits into a 2000-calorie daily diet
-        2. Percentage of daily values it provides for key nutrients
-        3. Whether it's considered high or low in specific nutrients according to FDA guidelines
-        4. How it compares to similar foods in its category
+        Please format your response with these exact headings:
         
-        Make it practical and relevant to daily eating decisions.
+        **Daily Diet Integration:**
+        [How this food fits into a 2000-calorie daily diet]
+        
+        **Daily Value Percentages:**
+        [Percentage of daily values for key nutrients]
+        
+        **FDA Guidelines Comparison:**
+        [Whether it's high or low in nutrients per FDA standards]
+        
+        **Category Comparison:**
+        [How it compares to similar foods in its category]
+        
+        Make it practical and relevant to daily eating decisions. Use bullet points where appropriate.
         """
         
         try:
@@ -204,14 +241,24 @@ class NutritionInsightsGenerator:
         
         {context}
         
-        Please provide:
-        1. 3-5 practical tips for incorporating or avoiding this food
-        2. Cooking/preparation suggestions to maximize health benefits
-        3. Storage and freshness tips
-        4. Warning signs or symptoms to watch for
-        5. Fun facts about the nutritional content
+        Please format your response with these exact headings:
         
-        Keep tips actionable and easy to remember.
+        **Practical Tips:**
+        [3-5 actionable tips for incorporating or avoiding this food]
+        
+        **Cooking & Preparation:**
+        [Suggestions to maximize health benefits]
+        
+        **Storage & Freshness:**
+        [How to store and maintain freshness]
+        
+        **Warning Signs:**
+        [Symptoms or signs to watch for]
+        
+        **Fun Facts:**
+        [Interesting facts about the nutritional content]
+        
+        Keep tips actionable and easy to remember. Use bullet points where appropriate.
         """
         
         try:
